@@ -28,4 +28,16 @@ trait MapExpressions {
     def canEquals( other : Any ) = other.isInstanceOf[SetEntry]
   }
 
+  type MapGetter[T] = (Map[String,T]) => T
+
+  class GetEntry[T]( val key : String  ) extends Expression[MapGetter[T]] {
+    override def eval(ns: NS): MapGetter[T] = (m : Map[String,Any] ) =>
+      m.get( key ).map( _.asInstanceOf[T] ).get
+
+    override def humanForm: String = s"Get(${key})"
+
+    override def resolved(ns: NS): Expression[MapGetter[T]] = this
+
+    override def exps: List[Expression[Any]] = List.empty
+  }
 }

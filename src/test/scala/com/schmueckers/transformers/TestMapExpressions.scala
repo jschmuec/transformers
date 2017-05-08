@@ -17,4 +17,11 @@ class TestMapExpressions extends FunSpec with GivenWhenThen with Matchers with M
       new SetEntry("a", Variable("a")).resolved( NS( "a" -> 1 ) ) should be(new SetEntry("a",Const(1)))
     }
   }
+
+  describe("MapGetter") {
+    it("should allow to retrieve a value from a Map") {
+      val f : MapGetter[Int] = new GetEntry("key").eval( NS() )
+      f( Map( "key" -> 1 ) ) should be (1)
+    }
+  }
 }
