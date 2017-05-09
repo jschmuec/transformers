@@ -81,4 +81,8 @@ class TestBasicTransformers extends FunSpec with GivenWhenThen with Matchers wit
       )
     }
   }
+
+  describe("Chain") {
+
+  }
 }

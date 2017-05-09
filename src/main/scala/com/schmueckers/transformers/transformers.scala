@@ -14,4 +14,7 @@ package object transformers {
   object NS {
     def apply(init: (String, Any)*) = new NS(Map(init: _*))
   }
+
+  type MapSetter = (Map[String, Any] => Map[String, Any] )
+  type MapGetter[T] = (Map[String, T] ) => T
 }
