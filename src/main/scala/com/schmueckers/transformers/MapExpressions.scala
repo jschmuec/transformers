@@ -40,6 +40,18 @@ object SetEntry {
   def unapply(se: SetEntry) = Some(se.key, se.exp)
 }
 
+/**
+  * A class that allows to take data from an inserted map
+  *
+  * This deprecated because it isn't really required. It would
+  * just mean that we can pick up data which we have calculated in
+  * the output before. This will not work as it will mean that
+  * we return completely the wrong type.
+  *
+  * @param key
+  * @tparam T
+  */
+@deprecated("This doesn't really make sense")
 class GetEntry[T](val key: String) extends Expression[MapGetter[T]] {
   override def eval(ns: NS): MapGetter[T] = (m: Map[String, Any]) =>
     m.get(key).map(_.asInstanceOf[T]).get

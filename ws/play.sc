@@ -1,18 +1,28 @@
-import java.security.Timestamp
+import com.schmueckers.transformers.{SetEntry, Variable, Documentor }
 
-class User private(val userName: String,
-                   val email: String,
-                   val timeStamp: Timestamp =
-                   new Timestamp(System.currentTimeMillis)) {
+val doctype = scala.xml.dtd.DocType(
+  "html",
+  scala.xml.dtd.PublicID(
+    "-//W3C//DTD XHTML 1.0 Strict//EN",
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"
+  ),
+  Nil
+)
 
-  def copy(uName: String = userName,
-           eMail: String = email) =
-    new User(uName, eMail, timeStamp)
-}
+def saveToHtmlFile(fileName: String, n: scala.xml.Node) =
+  scala.xml.XML.save(fileName, n, "UTF-8", true, doctype)
 
-object User {
-  def apply(userName: String, email: String) =
-    new User(userName, email)
+val chain = SetEntry("FirstName", Variable("GivenName")) +
+  SetEntry("Name", Variable("LastName"))
 
-  def unapply(u: User) = Some((u.userName, u.email, u.timeStamp))
-}
+
+saveToHtmlFile( "test.html", <html>
+  <head>
+  </head>
+<body><table>
+  {for (r <- Documentor.generateHtmlDocumentation(chain))
+    yield <tr>
+      {r}
+    </tr>}</table>
+</body></html> )
+
