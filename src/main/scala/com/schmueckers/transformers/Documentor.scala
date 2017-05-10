@@ -5,7 +5,7 @@ package com.schmueckers.transformers
   */
 object Documentor {
   def generateHtmlDocumentation[T](expression: Expression[T]) : List[ scala.xml.Node ] = expression match {
-    case SetEntry( key, exp ) => List( <tr><td>{key}</td><td>{exp.humanForm}</td></tr> )
+    case SetEntry( key, exp ) => List( <tr><td>{key}</td><td>={exp.humanForm}</td></tr> )
     case Chained( left, right ) => generateHtmlDocumentation( left ) ++ generateHtmlDocumentation( right )
   }
 }

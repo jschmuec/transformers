@@ -16,7 +16,7 @@ val chain = SetEntry("FirstName", Variable("GivenName")) +
   SetEntry("Name", Variable("LastName"))
 
 
-saveToHtmlFile( "test.html", <html>
+saveToHtmlFile( "FunnyTest.html", <html>
   <head>
   </head>
 <body><table>
