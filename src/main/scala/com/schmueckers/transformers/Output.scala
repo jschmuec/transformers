@@ -4,7 +4,7 @@ package com.schmueckers.transformers
   * A marker interface for output, I'm sure I'll figure out what to do with it.
   */
 trait Output[T] extends Expression[T => T] {
-  def +( right : Expression[T => T]) = Chained[T]( this, right )
+  def +( right : Output[T]) : Output[T] = Chained[T]( this, right )
   def resolveT( ns : NS ) : Output[T]
 }
 
@@ -21,6 +21,6 @@ class Chained[T]( val left : Output[T], val right : Output[T]) extends Output[T]
 }
 
 object Chained {
-  def apply[T]( left : Expression[T => T], right : Expression[T => T] ) = new Chained( left, right )
+  def apply[T]( left : Output[T], right : Output[T] ) = new Chained( left, right )
   def unapply[T]( c : Chained[T] ) = Some( c.left, c.right )
 }
