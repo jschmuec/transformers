@@ -5,9 +5,10 @@ package com.schmueckers.transformers
   */
 trait Output[T] extends Expression[T => T] {
   def +( right : Expression[T => T]) = Chained[T]( this, right )
+  def resolveT( ns : NS ) : Output[T]
 }
 
-class Chained[T]( val left : Expression[T => T], val right : Expression[T => T]) extends Output[T] {
+class Chained[T]( val left : Output[T], val right : Output[T]) extends Output[T] {
   override def eval(ns: NS): (T) => T =
     (t : T) => right.eval(ns)(left.eval(ns)(t))
 
@@ -15,7 +16,8 @@ class Chained[T]( val left : Expression[T => T], val right : Expression[T => T])
 
   override def exps: List[Expression[Any]] = left :: right :: Nil
 
-  override def resolved(ns: NS): Expression[(T) => T]  = new Chained( left.resolved(ns), right.resolved(ns))
+  override def resolved(ns: NS): Expression[(T) => T]  = new Chained( left.resolveT(ns), right.resolveT(ns))
+  override def resolveT( ns : NS ) = new Chained( left.resolveT(ns), right.resolveT(ns) )
 }
 
 object Chained {

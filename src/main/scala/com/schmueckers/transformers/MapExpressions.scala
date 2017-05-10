@@ -17,11 +17,13 @@ class SetEntry(val key: String, val exp: Expression[Any])
     exp.humanForm
   }"
 
-  override def resolved(ns: NS): Expression[MapSetter] =
+  override def resolveT(ns: NS): Output[Map[String,Any]] =
     if (exp == exp.resolved(ns))
       this
     else
       new SetEntry(key, exp.resolved(ns))
+
+  override def resolved( ns : NS ) = resolveT(ns)
 
   override def exps: List[Expression[Any]] = List(exp)
 
