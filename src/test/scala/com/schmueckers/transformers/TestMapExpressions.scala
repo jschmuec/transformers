@@ -6,7 +6,7 @@ import scala.xml.NodeSeq
 
 class TestMapExpressions
   extends FunSpec with GivenWhenThen with Matchers
-    with BasicTransformers
+    with BasicExpressions
 {
   describe("MapSetter") {
     it("should return a function which sets the value in a map") {

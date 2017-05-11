@@ -21,7 +21,8 @@ object Main extends App {
   def saveToHtmlFile(fileName: String, n: scala.xml.Node) =
     scala.xml.XML.save(fileName, n, "UTF-8", true, doctype)
 
-  val chain = SetEntry("FirstName", Variable("GivenName")) +
+  val chain =
+    SetEntry("FirstName", Variable("GivenName")) +
     SetEntry("Name", Variable("LastName")) +
     SetEntry("Age", Add(Const(1), Const(42)))
 
@@ -35,7 +36,6 @@ object Main extends App {
         th {{
         text-align: left;
         }}
-
 
         table, th, td {{
         border: 1px solid black;

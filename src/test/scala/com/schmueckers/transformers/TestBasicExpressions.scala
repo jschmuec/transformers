@@ -2,9 +2,7 @@ package com.schmueckers.transformers
 
 import org.scalatest.{FunSpec, GivenWhenThen, Matchers}
 
-
-
-class TestBasicTransformers extends FunSpec with GivenWhenThen with Matchers with BasicTransformers {
+class TestBasicExpressions extends FunSpec with GivenWhenThen with Matchers with BasicExpressions {
 
   describe("Concat") {
     it("Should concat three strings") {
@@ -82,7 +80,72 @@ class TestBasicTransformers extends FunSpec with GivenWhenThen with Matchers wit
     }
   }
 
-  describe("Chain") {
 
+  class SideEffect[T]( v : => Expression[T] ) extends Expression[T] {
+    override def eval(ns: NS): T = v.eval(ns)
+
+    override def humanForm: String = s"SideEfect(${v.humanForm})"
+
+    override def resolved(ns: NS): Expression[T] = {
+      val r: Expression[T] = v.resolved( ns )
+      new SideEffect(r)
+    }
+
+    override def exps: List[Expression[Any]] = v.exps
+  }
+
+  class Comment[T]( comment: String, exp : Expression[T] ) extends Expression[T] {override def eval(ns: NS): T = ???
+
+    override def humanForm: String =
+      s"""
+         |// ${comment}
+         |${exp.humanForm}
+       """.stripMargin
+
+    override def resolved(ns: NS): Expression[T] = new Comment( comment, exp.resolved((ns)))
+
+    override def exps: List[Expression[Any]] = List(exp)
+  }
+
+  describe("If") {
+    it("Should eval only the first expression if true") {
+      var i = 0
+      var j = 0
+      new If( true, new SideEffect( Const( {
+        i = i + 1
+        i
+      })),  Const( {
+        j = j + 1
+        j
+      })  ).eval(NS()) should equal (1)
+      i should equal (1)
+      j should equal (0)
+    }
+    it("Should only eval the second condition if false") {
+      var i = 0
+      var j = 3
+      new If( false, new SideEffect( Const( {
+        i = i + 1
+        i
+      })),  Const( {
+        j = j + 1
+        j
+      })  ).eval(NS()) should equal (4)
+      i should equal (0)
+      j should equal (4)
+    }
+    it( "Should not eval any of the conditions if not evaluated") {
+      var i = 0
+      var j = 0
+      val iif = new If(true, new SideEffect(Const({
+        i = i + 1
+        i
+      })), Const({
+        j = j + 1
+        j
+      }))
+      i should equal(0)
+      j should equal(0)
+    }
   }
 }

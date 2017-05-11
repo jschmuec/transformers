@@ -10,7 +10,7 @@ trait Expression[+T] {
 
   def resolved(ns: NS): Expression[T]
 
-  def exps : List[Expression[Any]]
+  def exps: List[Expression[Any]]
 
   def dependencies: Set[Expression[Any]] = Set(exps.flatMap(_.dependencies): _*)
 }
@@ -25,6 +25,27 @@ case class Variable[T](name: String) extends Expression[T] {
   override def dependencies: Set[Expression[Any]] = Set(this)
 
   override def resolved(ns: NS): Expression[T] = ns.get[T](name).map(Const[T](_)).getOrElse(this)
+}
+
+class If[T](condition: Expression[Boolean], e1: => Expression[T], e2: => Expression[T]) extends Expression[T] {
+  override def eval(ns: NS): T =
+    if (condition.eval(ns))
+      e1.eval(ns)
+    else
+      e2.eval(ns)
+
+  override def humanForm: String =
+    s"""
+       |if ( ${condition.humanForm} ) {
+       |  ${e1.humanForm}
+       |} else {
+       |  ${e2.humanForm}
+       |}
+     """.stripMargin
+
+  override def exps: List[Expression[Any]] = List(condition, e1, e2)
+
+  override def resolved(ns: NS): Expression[T] = new If(condition.resolved(ns), e1.resolved(ns), e2.resolved(ns))
 }
 
 case class Const[T](value: T) extends Expression[T] {
@@ -73,10 +94,10 @@ trait FoldableExpression[T] extends Expression[T] {
   }
 }
 
-final class InfixExpression[T]( val op: (T, T) => T,
-                                val seed: T,
-                                val name: String,
-                                val exps: List[Expression[T]])
+final class InfixExpression[T](val op: (T, T) => T,
+                               val seed: T,
+                               val name: String,
+                               val exps: List[Expression[T]])
   extends FoldableExpression[T] {
   def humanForm = {
     val t: List[String] = for {
@@ -101,7 +122,8 @@ final class InfixExpression[T]( val op: (T, T) => T,
 }
 
 trait PrefixExpressionT[T] {
-  def name : String
+  def name: String
+
   def exps: List[Expression[Any]]
 
   def humanForm = {

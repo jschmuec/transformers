@@ -3,7 +3,7 @@ package com.schmueckers.transformers
 /**
   * Created by js on 06/05/2017.
   */
-trait BasicTransformers {
+trait BasicExpressions {
 
   def Mult[T](exps: Expression[T]*) = new InfixExpression(mult, 1, "*", exps.toList)
 
