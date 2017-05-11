@@ -81,20 +81,21 @@ class TestBasicExpressions extends FunSpec with GivenWhenThen with Matchers with
   }
 
 
-  class SideEffect[T]( v : => Expression[T] ) extends Expression[T] {
+  class SideEffect[T](v: => Expression[T]) extends Expression[T] {
     override def eval(ns: NS): T = v.eval(ns)
 
     override def humanForm: String = s"SideEfect(${v.humanForm})"
 
     override def resolved(ns: NS): Expression[T] = {
-      val r: Expression[T] = v.resolved( ns )
+      val r: Expression[T] = v.resolved(ns)
       new SideEffect(r)
     }
 
     override def exps: List[Expression[Any]] = v.exps
   }
 
-  class Comment[T]( comment: String, exp : Expression[T] ) extends Expression[T] {override def eval(ns: NS): T = ???
+  class Comment[T](comment: String, exp: Expression[T]) extends Expression[T] {
+    override def eval(ns: NS) = exp.eval(ns)
 
     override def humanForm: String =
       s"""
@@ -102,39 +103,43 @@ class TestBasicExpressions extends FunSpec with GivenWhenThen with Matchers with
          |${exp.humanForm}
        """.stripMargin
 
-    override def resolved(ns: NS): Expression[T] = new Comment( comment, exp.resolved((ns)))
+    override def resolved(ns: NS): Expression[T] = new Comment(comment, exp.resolved((ns)))
 
     override def exps: List[Expression[Any]] = List(exp)
+  }
+
+  object Comment {
+    def apply[T](comment: String, exp: Expression[T]) = new Comment(comment, exp)
   }
 
   describe("If") {
     it("Should eval only the first expression if true") {
       var i = 0
       var j = 0
-      new If( true, new SideEffect( Const( {
+      new If(true, new SideEffect(Const({
         i = i + 1
         i
-      })),  Const( {
+      })), Const({
         j = j + 1
         j
-      })  ).eval(NS()) should equal (1)
-      i should equal (1)
-      j should equal (0)
+      })).eval(NS()) should equal(1)
+      i should equal(1)
+      j should equal(0)
     }
     it("Should only eval the second condition if false") {
       var i = 0
       var j = 3
-      new If( false, new SideEffect( Const( {
+      new If(false, new SideEffect(Const({
         i = i + 1
         i
-      })),  Const( {
+      })), Const({
         j = j + 1
         j
-      })  ).eval(NS()) should equal (4)
-      i should equal (0)
-      j should equal (4)
+      })).eval(NS()) should equal(4)
+      i should equal(0)
+      j should equal(4)
     }
-    it( "Should not eval any of the conditions if not evaluated") {
+    it("Should not eval any of the conditions if not evaluated") {
       var i = 0
       var j = 0
       val iif = new If(true, new SideEffect(Const({
@@ -146,6 +151,18 @@ class TestBasicExpressions extends FunSpec with GivenWhenThen with Matchers with
       }))
       i should equal(0)
       j should equal(0)
+    }
+  }
+  describe("Comment") {
+    it("should return the same value as the expression inside") {
+      Comment("dummy", 1).eval(NS()) should be(1)
+    }
+    it("Should pass the right human form") {
+      Comment("hello", 1 ).humanForm should equal (
+        """
+           |// hello
+           |1
+         """.stripMargin )
     }
   }
 }
