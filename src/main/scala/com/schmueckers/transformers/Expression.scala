@@ -27,32 +27,39 @@ case class Variable[T](name: String) extends Expression[T] {
   override def resolved(ns: NS): Expression[T] = ns.get[T](name).map(Const[T](_)).getOrElse(this)
 }
 
-class If[T](condition: Expression[Boolean], e1: => Expression[T], e2: => Expression[T]) extends Expression[T] {
+class If[T](condition: Expression[Boolean], eTrue: => Expression[T], eFalse: => Expression[T]) extends Expression[T] {
   override def eval(ns: NS): T =
     if (condition.eval(ns))
-      e1.eval(ns)
+      eTrue.eval(ns)
     else
-      e2.eval(ns)
+      eFalse.eval(ns)
 
   override def humanForm: String =
-    s"""
+    s"""|
        |if ( ${condition.humanForm} ) {
-       |  ${e1.humanForm}
+       |  ${eTrue.humanForm}
        |} else {
-       |  ${e2.humanForm}
-       |}
-     """.stripMargin
+       |  ${eFalse.humanForm}
+       |}""".stripMargin
 
-  override def exps: List[Expression[Any]] = List(condition, e1, e2)
+  override def exps: List[Expression[Any]] = List(condition, eTrue, eFalse)
 
-  override def resolved(ns: NS): Expression[T] = new If(condition.resolved(ns), e1.resolved(ns), e2.resolved(ns))
+  override def resolved(ns: NS): Expression[T] = new If(condition.resolved(ns), eTrue.resolved(ns), eFalse.resolved(ns))
+}
+
+object If {
+  def apply[T](cond: Expression[Boolean], eTrue: => Expression[T], eFalse: => Expression[T]) =
+    new If(cond, eTrue, eFalse)
 }
 
 case class Const[T](value: T) extends Expression[T] {
   override def eval(ns: NS): T = value
 
   override def humanForm: String = value match {
-    case i: Int => i.toString
+    case s : String => s""""${s}""""
+    case i : Int => i.toString
+    case b : Boolean => b.toString
+    case d : Double => d.toString
     case other => s""""${other.toString}""""
   }
 
@@ -61,6 +68,41 @@ case class Const[T](value: T) extends Expression[T] {
   override def resolved(ns: NS): Expression[T] = this
 }
 
+/**
+  * An expression that has side effect. This means the calculation
+  * will only be evaluted when the expression is evaluated.
+  *
+  * @param v
+  * @tparam T
+  */
+class SideEffect[T](v: => Expression[T]) extends Expression[T] {
+  override def eval(ns: NS): T = v.eval(ns)
+
+  override def humanForm: String = s"SideEfect(${v.humanForm})"
+
+  override def resolved(ns: NS): Expression[T] = {
+    val r: Expression[T] = v.resolved(ns)
+    new SideEffect(r)
+  }
+
+  override def exps: List[Expression[Any]] = v.exps
+}
+
+class Comment[T](comment: String, exp: Expression[T]) extends Expression[T] {
+  override def eval(ns: NS) = exp.eval(ns)
+
+  override def humanForm: String =
+    s"""|// ${comment}
+        |${exp.humanForm}""".stripMargin
+
+  override def resolved(ns: NS): Expression[T] = new Comment(comment, exp.resolved((ns)))
+
+  override def exps: List[Expression[Any]] = List(exp)
+}
+
+object Comment {
+  def apply[T](comment: String, exp: Expression[T]) = new Comment(comment, exp)
+}
 
 trait FoldableExpression[T] extends Expression[T] {
   def name: String
