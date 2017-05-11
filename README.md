@@ -14,4 +14,4 @@ function of the later is that a human readable documentation
 can be generated directly from the source code. _Or at least
 that's the ambition._
 
-TODO: Add Link to GenerateDocumentation.md
+[Here is a longer description of the generation.](doc/GenerateDocumentation.md)
