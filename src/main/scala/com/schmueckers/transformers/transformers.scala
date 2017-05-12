@@ -27,4 +27,5 @@ package object transformers extends BasicExpressions {
     * @return A Const[T] wrapping the value t
     */
   implicit def valueToConst[T <: AnyVal](t: T) = Const[T](t)
+  implicit def stringToConst( s : String ) = Const( s )
 }
