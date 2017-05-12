@@ -87,6 +87,9 @@ class SideEffect[T](v: => Expression[T]) extends Expression[T] {
 
   override def exps: List[Expression[Any]] = v.exps
 }
+object SideEffect {
+  def apply[T]( v : => Expression[T] ) = new SideEffect[T]( v )
+}
 
 class Comment[T](comment: String, exp: Expression[T]) extends Expression[T] {
   override def eval(ns: NS) = exp.eval(ns)
