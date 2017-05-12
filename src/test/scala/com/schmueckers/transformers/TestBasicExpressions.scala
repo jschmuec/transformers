@@ -83,52 +83,19 @@ class TestBasicExpressions extends FunSpec with GivenWhenThen with Matchers with
 
 
   describe("If") {
-    it("Should eval only the first expression if true") {
-      var i = 0
-      var j = 0
-      new If(true, {
-        i = i + 1
-        i
-      }, {
-        j = j + 1
-        j
-      }).eval(NS()) should equal(1)
-      i should equal(1)
-      j should equal(0)
+    it("Should eval to the first expression if true") {
+      new If(true, 1, 0 ).eval(NS()) should equal(1)
     }
-    it("Should only eval the second condition if false") {
-      var i = 0
-      var j = 3
-      new If(false, {
-        i = i + 1
-        i
-      }, {
-        j = j + 1
-        j
-      }).eval(NS()) should equal(4)
-      i should equal(0)
-      j should equal(4)
+    it("Should return the value of the second expression if false") {
+      new If(false, 1, 0).eval(NS()) should equal(0)
     }
-    it("Should not eval any of the conditions if not evaluated") {
-      var i = 0
-      var j = 0
-      val iif = new If(true, Const({
-        i = i + 1
-        i
-      }), Const({
-        j = j + 1
-        j
-      }))
-      i should equal(0)
-      j should equal(0)
-    }
+
     it("return the correct dependencies") {
       If(Variable("a"), Variable("b"), Variable("c")).dependencies should equal(Set(Variable("a"),Variable("b"),Variable("c")))
     }
 
     it("should return a good humanForm ") {
-      // TODO find a way that I can pass in constants directly
-      If(true, Const("Yes"), Const("No")).humanForm should equal(
+      If(true, "Yes", "No").humanForm should equal(
         s"""|
            |if ( true ) {
            |  "Yes"

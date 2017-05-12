@@ -27,7 +27,7 @@ case class Variable[T](name: String) extends Expression[T] {
   override def resolved(ns: NS): Expression[T] = ns.get[T](name).map(Const[T](_)).getOrElse(this)
 }
 
-class If[T](condition: Expression[Boolean], eTrue: => Expression[T], eFalse: => Expression[T]) extends Expression[T] {
+class If[T](condition: Expression[Boolean], eTrue: Expression[T], eFalse: Expression[T]) extends Expression[T] {
   override def eval(ns: NS): T =
     if (condition.eval(ns))
       eTrue.eval(ns)
@@ -48,7 +48,7 @@ class If[T](condition: Expression[Boolean], eTrue: => Expression[T], eFalse: => 
 }
 
 object If {
-  def apply[T](cond: Expression[Boolean], eTrue: => Expression[T], eFalse: => Expression[T]) =
+  def apply[T](cond: Expression[Boolean], eTrue: Expression[T], eFalse: Expression[T]) =
     new If(cond, eTrue, eFalse)
 }
 
