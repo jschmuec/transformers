@@ -30,7 +30,7 @@ class TestXMLExtractors extends FunSpec with GivenWhenThen with Matchers with XM
       Text( Const(<test>TEST</test>)).eval( NS() ) should be ("TEST")
     }
     it("should render properly") {
-      Text(Const(<test/>)).humanForm should be ("Text(Const(<test/>))")
+      Text(Const(<test/>)).humanForm should be ("""Text("<test/>")""")
     }
     it("should show dependencies" ) {
       Text(Variable("a")).dependencies should be (Set(Variable("a")))

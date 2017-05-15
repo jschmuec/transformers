@@ -12,7 +12,7 @@ class Chained[T]( val left : Output[T], val right : Output[T]) extends Output[T]
   override def eval(ns: NS): (T) => T =
     (t : T) => right.eval(ns)(left.eval(ns)(t))
 
-  override def humanForm: String = ???
+  override def humanForm: String = s"Chained( ${left.humanForm}, ${right.humanForm} )"
 
   override def exps: List[Expression[Any]] = left :: right :: Nil
 

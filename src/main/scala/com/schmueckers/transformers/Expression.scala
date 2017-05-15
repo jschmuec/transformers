@@ -6,13 +6,54 @@ package com.schmueckers.transformers
 trait Expression[+T] {
   def eval(ns: NS): T
 
+  /**
+    * Returns the expression in a simple human-readable form
+    *
+    * This will not be good enough to be stacked in multiple layers but
+    * for simple calculations it's readable.
+    *
+    * @return A String that is a human-readable form of the
+    *         expression
+    */
   def humanForm: String
 
+  /**
+    * Resolves all the variables in the {{NameSpace}}
+    *
+    * This leaves only the unresolved variables in the
+    * expression. Good to analyse what variables are free
+    * to be chosen from. Not really used at this point in
+    * time in any of my practical applications.
+    *
+    * @param ns The Namespace which defines Variables
+    * @return The expression where all variables are replaced
+    *         with their valus if they are contained in the
+    *         Namespace.
+    */
   def resolved(ns: NS): Expression[T]
 
+  /**
+    * A list of expressions that this expression depends on
+    *
+    * Basic function used to implement the cannonical {{#dependencies}}
+    *
+    * @return A list of all the expressions the expression is
+    *         dependent on
+    */
   def exps: List[Expression[Any]]
 
+  /**
+    * A list of Variables the expression is dependent on
+    *
+    * Recurses through the Dependency Tree and returns only
+    * Variables and other Input dependencies
+    *
+    * @return A Set of all Variable expressions used in
+    *         the Dependency Tree
+    */
   def dependencies: Set[Expression[Any]] = Set(exps.flatMap(_.dependencies): _*)
+
+  override def toString: String = humanForm
 }
 
 case class Variable[T](name: String) extends Expression[T] {
@@ -37,14 +78,16 @@ class If[T](condition: Expression[Boolean], eTrue: Expression[T], eFalse: Expres
   override def humanForm: String =
     s"""|
        |if ( ${condition.humanForm} ) {
-       |  ${eTrue.humanForm}
-       |} else {
-       |  ${eFalse.humanForm}
-       |}""".stripMargin
+        |  ${eTrue.humanForm}
+        |} else {
+        |  ${eFalse.humanForm}
+        |}""".stripMargin
 
   override def exps: List[Expression[Any]] = List(condition, eTrue, eFalse)
 
   override def resolved(ns: NS): Expression[T] = new If(condition.resolved(ns), eTrue.resolved(ns), eFalse.resolved(ns))
+
+  override def toString: String = humanForm
 }
 
 object If {
@@ -56,10 +99,10 @@ case class Const[T](value: T) extends Expression[T] {
   override def eval(ns: NS): T = value
 
   override def humanForm: String = value match {
-    case s : String => s""""${s}""""
-    case i : Int => i.toString
-    case b : Boolean => b.toString
-    case d : Double => d.toString
+    case s: String => s""""${s}""""
+    case i: Int => i.toString
+    case b: Boolean => b.toString
+    case d: Double => d.toString
     case other => s""""${other.toString}""""
   }
 
@@ -87,8 +130,9 @@ class SideEffect[T](v: => Expression[T]) extends Expression[T] {
 
   override def exps: List[Expression[Any]] = v.exps
 }
+
 object SideEffect {
-  def apply[T]( v : => Expression[T] ) = new SideEffect[T]( v )
+  def apply[T](v: => Expression[T]) = new SideEffect[T](v)
 }
 
 class Comment[T](comment: String, exp: Expression[T]) extends Expression[T] {

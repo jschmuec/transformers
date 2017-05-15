@@ -29,7 +29,6 @@ object Main extends App {
 
   val doc: List[Node] = Documentor.generateHtmlDocumentation(chain)
 
-  println(doc)
   saveToHtmlFile("FunnyTest.html", <html>
     <head>
       <style type="text/css">
@@ -60,6 +59,15 @@ object Main extends App {
       </table>
     </body>
   </html>)
+
+  println( chain.eval( NS("GivenName" -> "Korti", "LastName" -> "Mehdi" ))( Map() ))
+
+  println( chain.dependencies )
+
+  val vars = Set(Variable("GivenName"))
+
+  println(
+    chain.exps.filter( exp => exp.dependencies contains Variable("GivenName") ).map(_.humanForm))
 
   //TODO make only tests depending on jstools as only the XML Matcher is used
 
